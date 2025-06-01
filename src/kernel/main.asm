@@ -1,4 +1,4 @@
-org 0x0
+org 0x0000
 bits 16
 
 section .text
@@ -65,15 +65,18 @@ cmdNotFound:
     call printStr
     ret
 
+; ---------------------------------------
+; Utility Functions
+; ---------------------------------------
+
 ; Print string at DS:SI until null terminator
 printStr:
-    mov ah, 0x0e
+    mov ah, 0x0E
 printLoop:
-    mov al, [si]
-    cmp al, 0
-    je printDone
+    lodsb
+    test al, al
+    jz printDone
     int 0x10
-    inc si
     jmp printLoop
 printDone:
     ret
@@ -86,11 +89,11 @@ getInputLoop:
     int 0x16
     cmp al, 0x08
     je backspace
-    cmp al, 0x0d
+    cmp al, 0x0D
     je inputDone
-    cmp cl, 0x3f
+    cmp cl, 0x3F
     je getInputLoop
-    mov ah, 0x0e
+    mov ah, 0x0E
     int 0x10
     stosb
     inc cl
@@ -102,7 +105,7 @@ backspace:
     dec di
     mov byte [di], 0
     dec cl
-    mov ah, 0x0e
+    mov ah, 0x0E
     mov al, 0x08
     int 0x10
     mov al, ' '
@@ -114,10 +117,10 @@ backspace:
 inputDone:
     mov al, 0
     stosb
-    mov ah, 0x0e
-    mov al, 0x0d
+    mov ah, 0x0E
+    mov al, 0x0D
     int 0x10
-    mov al, 0x0a
+    mov al, 0x0A
     int 0x10
     ret
 
@@ -173,8 +176,9 @@ cls:
     ret
 
 ; ---------------------------------------
-; Command handlers
+; Command Handlers
 ; ---------------------------------------
+
 clear_screen:
     call cls
     ret
@@ -222,14 +226,14 @@ getDate:
 ; Data Section
 ; ---------------------------------------
 section .data
-cmdClear    db 'clear',0
-cmdHelp     db 'help',0
-cmdInfo     db 'info',0
-cmdAge      db 'age',0
-cmdVersion db 'version',0
-cmdEcho    db 'echo',0
-cmdDate    db 'date',0
-isSteveOnMeth    db 'meth',0
+cmdClear        db 'clear', 0
+cmdHelp         db 'help', 0
+cmdInfo         db 'info', 0
+cmdAge          db 'age', 0
+cmdVersion      db 'version', 0
+cmdEcho         db 'echo', 0
+cmdDate         db 'date', 0
+isSteveOnMeth   db 'meth', 0
 
 commandTable:
     dw cmdClear, clear_screen
@@ -239,20 +243,20 @@ commandTable:
     dw cmdVersion, version
     dw cmdEcho, echo
     dw cmdDate, date
-    dw isSteveOnMeth, methCall 
+    dw isSteveOnMeth, methCall
     dw 0, 0
 
-readBuffer  times 64 db 0
-prompt      db '>',0
-titleString db 'SteveOS v0.1',13,10,0
-msgHelp     db 'Available commands: help info clear age',13,10,0
-msgInfo     db 'Info: Simple 16-bit OS kernel',13,10,0
-msgAge      db 'Age: 25',13,10,0
-badCmd      db 'No such command.',13,10,0
-newLine     db 13,10,0
-msgVersion db 'SteveOS version 0.1 - Build 2025',13,10,0
-msgDate    db 'Date: 2025-05-26',13,10,0
-meth db 'Is Steve on Meth? Yes, always!',13,10,0
+readBuffer      times 64 db 0
+prompt          db '>', 0
+titleString     db 'SteveOS v0.1', 13, 10, 0
+msgHelp         db 'Available commands: help info clear', 13, 10, 0
+msgInfo         db 'Info: Simple 16-bit OS kernel', 13, 10, 0
+msgAge          db 'Age: 25', 13, 10, 0
+badCmd          db 'No such command.', 13, 10, 0
+newLine         db 13, 10, 0
+msgVersion      db 'SteveOS version 0.1 - Build 2025', 13, 10, 0
+msgDate         db 'Date: 2025-05-26', 13, 10, 0
+meth            db 'Is Steve on Meth? Yes, always!', 13, 10, 0
 
 ; ---------------------------------------
 ; BSS Section
