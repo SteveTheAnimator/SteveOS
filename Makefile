@@ -12,17 +12,17 @@ all: floppy_image
 #
 # Floppy image
 #
-floppy_image: $(BUILD_DIR)\main_floppy.img
+floppy_image: $(BUILD_DIR)\steveos.img
 
-$(BUILD_DIR)\main_floppy.img: bootloader kernel
+$(BUILD_DIR)\steveos.img: bootloader kernel
 	REM Create a blank 1.44MB floppy image
-	powershell -Command "$$f = '$(BUILD_DIR)\\main_floppy.img'; $$fs = [System.IO.File]::OpenWrite($$f); $$fs.SetLength(1474560); $$fs.Close()"
+	powershell -Command "$$f = '$(BUILD_DIR)\\steveos.img'; $$fs = [System.IO.File]::OpenWrite($$f); $$fs.SetLength(1474560); $$fs.Close()"
 
 	REM Write bootloader to sector 0 (first 512 bytes)
-	powershell -Command "$$bootloader = [System.IO.File]::ReadAllBytes('$(BUILD_DIR)\\bootloader.bin'); $$floppy = [System.IO.File]::OpenWrite('$(BUILD_DIR)\\main_floppy.img'); $$floppy.Write($$bootloader, 0, $$bootloader.Length); $$floppy.Close()"
+	powershell -Command "$$bootloader = [System.IO.File]::ReadAllBytes('$(BUILD_DIR)\\bootloader.bin'); $$floppy = [System.IO.File]::OpenWrite('$(BUILD_DIR)\\steveos.img'); $$floppy.Write($$bootloader, 0, $$bootloader.Length); $$floppy.Close()"
 
 	REM Write kernel to sector 1 (starting at byte 512)
-	powershell -Command "$$kernel = [System.IO.File]::ReadAllBytes('$(BUILD_DIR)\\kernel.bin'); $$floppy = [System.IO.File]::OpenWrite('$(BUILD_DIR)\\main_floppy.img'); $$floppy.Seek(512, [System.IO.SeekOrigin]::Begin); $$floppy.Write($$kernel, 0, $$kernel.Length); $$floppy.Close()"
+	powershell -Command "$$kernel = [System.IO.File]::ReadAllBytes('$(BUILD_DIR)\\kernel.bin'); $$floppy = [System.IO.File]::OpenWrite('$(BUILD_DIR)\\steveos.img'); $$floppy.Seek(512, [System.IO.SeekOrigin]::Begin); $$floppy.Write($$kernel, 0, $$kernel.Length); $$floppy.Close()"
 
 #
 # Bootloader
