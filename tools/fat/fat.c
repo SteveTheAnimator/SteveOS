@@ -24,7 +24,6 @@ typedef struct {
     uint16_t Heads;
     uint32_t HiddenSectors;
     uint32_t LargeSectorCount;
-
     uint8_t  DriveNumber;
     uint8_t  _Reserved;
     uint8_t  Signature;
@@ -75,9 +74,7 @@ bool readRootDirectory(FILE* disk) {
     g_RootDirectorySectorStart = g_BootSector.ReservedSectors + g_BootSector.SectorsPerFat * g_BootSector.FatCount;
 
     size_t dirSize = sizeof(DirectoryEntry) * g_BootSector.DirEntryCount;
-    size_t sectors = dirSize / g_BootSector.BytesPerSector;
-    if (dirSize % g_BootSector.BytesPerSector)
-        sectors++;
+    size_t sectors = (dirSize + g_BootSector.BytesPerSector - 1) / g_BootSector.BytesPerSector;
 
     g_RootDirectory = malloc(sectors * g_BootSector.BytesPerSector);
     if (!g_RootDirectory) return false;
@@ -86,18 +83,11 @@ bool readRootDirectory(FILE* disk) {
 }
 
 DirectoryEntry* findFile(const char* name) {
-    // Format name to 11 chars, space padded, uppercase
-    char formattedName[12] = { ' ' };
-    size_t len = strlen(name);
-    size_t i = 0;
+    char formattedName[11];
+    memset(formattedName, ' ', sizeof(formattedName));
 
-    for (i = 0; i < 11 && i < len; i++) {
+    for (size_t i = 0; i < 11 && name[i]; i++)
         formattedName[i] = toupper((unsigned char)name[i]);
-    }
-    for (; i < 11; i++) {
-        formattedName[i] = ' ';
-    }
-    formattedName[11] = '\0';
 
     for (uint32_t i = 0; i < g_BootSector.DirEntryCount; i++) {
         if (memcmp(g_RootDirectory[i].Name, formattedName, 11) == 0)
@@ -106,31 +96,30 @@ DirectoryEntry* findFile(const char* name) {
     return NULL;
 }
 
-bool readFile(DirectoryEntry* fileEntry, FILE* disk, uint8_t* outputBuffer) {
-    uint16_t cluster = fileEntry->FirstClusterLow;
-    uint32_t bytesLeft = fileEntry->Size;
-    const uint32_t bytesPerCluster = g_BootSector.SectorsPerCluster * g_BootSector.BytesPerSector;
+bool readFile(DirectoryEntry* entry, FILE* disk, uint8_t* buffer) {
+    uint16_t cluster = entry->FirstClusterLow;
+    uint32_t bytesLeft = entry->Size;
+    uint32_t bytesPerCluster = g_BootSector.SectorsPerCluster * g_BootSector.BytesPerSector;
 
     while (cluster >= 2 && cluster < 0x0FF8) {
-        uint32_t sector = g_RootDirectorySectorStart + 
-            (g_BootSector.DirEntryCount * sizeof(DirectoryEntry) + g_BootSector.BytesPerSector - 1) / g_BootSector.BytesPerSector // just root dir size in sectors
-            + (cluster - 2) * g_BootSector.SectorsPerCluster;
+        uint32_t dataStartSector = g_RootDirectorySectorStart + 
+            (g_BootSector.DirEntryCount * sizeof(DirectoryEntry) + g_BootSector.BytesPerSector - 1) / g_BootSector.BytesPerSector;
+        uint32_t sector = dataStartSector + (cluster - 2) * g_BootSector.SectorsPerCluster;
 
-        if (!readSectors(disk, sector, g_BootSector.SectorsPerCluster, outputBuffer))
+        if (!readSectors(disk, sector, g_BootSector.SectorsPerCluster, buffer))
             return false;
 
         size_t toCopy = bytesLeft < bytesPerCluster ? bytesLeft : bytesPerCluster;
-        outputBuffer += toCopy;
+        buffer += toCopy;
         bytesLeft -= toCopy;
 
-        // Read next cluster from FAT12
         size_t fatIndex = cluster + (cluster / 2);
         uint16_t nextCluster;
-        if (cluster & 1) {
+
+        if (cluster & 1)
             nextCluster = (*(uint16_t*)(g_Fat + fatIndex - 1)) >> 4;
-        } else {
+        else
             nextCluster = (*(uint16_t*)(g_Fat + fatIndex)) & 0x0FFF;
-        }
 
         cluster = nextCluster;
     }
@@ -208,6 +197,5 @@ int main(int argc, char** argv) {
     free(g_Fat);
     free(g_RootDirectory);
     fclose(disk);
-
     return 0;
 }
