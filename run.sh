@@ -1,1 +1,0 @@
-"C:\Program Files\qemu\qemu-system-i386.exe" -fda C:\Users\harlo\source\repos\SteveOS\build\main_floppy.img
