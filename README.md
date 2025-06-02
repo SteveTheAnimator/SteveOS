@@ -33,9 +33,9 @@ Make sure `nasm.exe` and `gcc.exe` are available in your PATH.
 
 ### 1. Build with `make`
 
-``cmd
+```cmd
 make
-``
+```
 
 ---
 
@@ -43,9 +43,9 @@ make
 
 ### With QEMU
 
-``cmd
-qemu-system-i386 -fda build\steveos.img
-``
+```cmd
+qemu-system-i386 build\steveos.img
+```
 
 ---
 
