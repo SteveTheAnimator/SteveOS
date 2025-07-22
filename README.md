@@ -4,7 +4,7 @@
 
 ---
 
-## 🧠 Features
+## Features
 
 - FAT12 bootloader written from scratch  
 - Kernel loaded to `0x1000:0000` in real mode  
@@ -18,7 +18,7 @@
 
 ---
 
-## 🛠 Requirements
+## Requirements
 
 - **NASM** (Netwide Assembler)
 - **GCC** (optional, for FAT tool build)
@@ -27,7 +27,7 @@
 
 ---
 
-## 🏗 Build Instructions (Windows)
+## Build Instructions (Windows)
 
 Make sure `nasm.exe` and `gcc.exe` are available in your PATH.
 
@@ -39,7 +39,7 @@ make
 
 ---
 
-## 🚀 Booting the OS
+## Booting the OS
 
 ### With QEMU
 
@@ -49,7 +49,7 @@ qemu-system-i386 build\steveos.img
 
 ---
 
-## 💬 Notes
+## Notes
 
 - `steveos.img` is a raw floppy disk image (1.44MB).
 - Bootloader resides in sector 0, kernel in sector 1 onward.
